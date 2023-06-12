@@ -1,0 +1,196 @@
+import { NavigationContainer } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, Text, Button, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const Stack = createNativeStackNavigator();
+
+const App = () => {
+
+
+  // component
+  const Header = () => {
+    return (
+      <View>
+        {/* <TextInput placeholder='name' /> */}
+        <Button title="Back" onPress={() => navigation.navigate('Registeration')} />
+      </View>
+    )
+  }
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{
+
+        headerRight: () => <Header />,
+        headerTintColor: "white",
+        headerStyle: {
+          backgroundColor: "black",
+        },
+        headerTitleStyle: {
+          fontSize: 25
+        }
+
+      }} >
+        <Stack.Screen name="Registeration" component={RegisterationScreen} />
+        <Stack.Screen name="LogIn" component={LogInScreen} />
+
+
+      </Stack.Navigator>
+
+    </NavigationContainer>
+  )
+}
+
+const RegisterationScreen = (props) => {
+
+  const handleRegistration = async () => {
+    if (pass !== confirmPass) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    try {
+      const storedData = await AsyncStorage.getItem('userData');
+      const userData = storedData ? JSON.parse(storedData) : [];
+      const isEmailRegistered = userData.some(user => user.email === email);
+      if (isEmailRegistered) {
+        alert('Error', 'Email already registered');
+        return;
+      }
+
+      const newUser = { email, password };
+      userData.push(newUser);
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      alert('Registration successful');
+    } catch (error) {
+      console.log(error);
+      alert('Registration failed');
+    }
+  };
+
+  const [name, setName] = useState();
+  const [email, setEmail] = useState();
+  const [pass, setPass] = useState();
+  const [confirmPass, setconfirmPass] = useState();
+  return (
+
+    <View style={styles.container}>
+
+      <Text style={styles.text}>Register Your Account</Text>
+
+      <TextInput style={styles.inp} onChangeText={(text) => setName(text)} placeholder='Name'></TextInput>
+
+      <TextInput style={styles.inp} onChangeText={(text) => setEmail(text)} placeholder='Email'></TextInput>
+
+      <TextInput style={styles.inp} onChangeText={(text) => setPass(text)} placeholder='Password'></TextInput>
+
+      <TextInput style={styles.inp} onChangeText={(text) => setconfirmPass(text)} placeholder='Confirm Pass'></TextInput>
+
+      <TouchableOpacity onPress={handleRegistration}>
+        <Text style={styles.btn}>Register</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.text1}>
+        Already have an account?<TouchableOpacity onPress={() => props.navigation.navigate("LogIn", { name, email, pass, confirmPass })}>
+        <Text style={styles.btn}>Log In</Text>
+      </TouchableOpacity>
+      </Text>
+
+      
+
+    </View>
+  )
+};
+const LogInScreen = (props) => {
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
+  const handleLogin = async () => {
+    try {
+      const storedData = await AsyncStorage.getItem('userData');
+      const userData = storedData ? JSON.parse(storedData) : [];
+      const user = userData.find(user => user.email === email && user.pass
+        === pass);
+      if (user) {
+        alert('Success', 'Login successful');
+      } else {
+        alert('Error', 'Incorrect email or password');
+      }
+    } catch (error) {
+      alert('Error', 'Login failed');
+      console.log(error);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.text}> Log In Page</Text>
+      <TextInput style={styles.inp} onChangeText={(text) => setEmail(text)} placeholder='Email'></TextInput>
+
+      <TextInput style={styles.inp} onChangeText={(text) => setPass(text)} placeholder='Password'></TextInput>
+
+      <TouchableOpacity onPress={handleLogin}>
+        <Text style={styles.btn}>LogIn</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => props.navigation.navigate('Registeration')}>
+        <Text >Don't have an account? <TouchableOpacity onPress={() => props.navigation.navigate('Registeration')}>
+          <Text style={styles.btn}>SignUp</Text>
+        </TouchableOpacity></Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'space-center',
+    
+  },
+  h: {
+    fontSize: 30,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  text: {
+    fontSize: 30,
+    alignItems: 'center',
+    justifyContent: 'space-center',
+
+  },
+  text1: {
+    fontSize: 15,
+    alignItems: 'center',
+    justifyContent: 'space-center',
+
+  },
+  inp: {
+    fontSize: 18,
+    borderWidth: 2,
+    borderRadius: 5,
+    color: 'black',
+    borderColor: 'blue',
+    margin: 10,
+    padding: 10,
+    width: 250,
+    height: 40,
+
+  },
+  box: {
+    paddingLeft: 10,
+    marginLeft: 40,
+    alignItems: 'center',
+    justifyContent: 'space-center',
+    height: 20,
+    alignItems: 'flex-start'
+  },
+  btn: {
+    color: "blue",
+    fontSize: 20
+
+  }
+});
+
+export default App;
